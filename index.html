@@ -1,1 +1,45 @@
-Hello World
+<!DOCTYPE html>
+<html ng-app="gemStore">
+<head>
+    <title>Jobster</title>
+    <link rel="stylesheet" type="text/css" href="static/bootstrap/css/bootstrap.journal.min.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="static/bootstrap/css/bootstrap-theme.css" /> -->
+    <script type="text/javascript" src="static/angular.js"></script>
+    <script type="text/javascript" src="app/app.js"></script>
+</head>
+<body>
+
+<!-- Fixed navbar -->
+<div class="navbar navbar-default" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="#">Jobster</a></li>
+        <li class="active"><a href="vacancies">Vacancies</a></li>
+        <li><a href="employers">Employers</a></li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</div>
+<!-- END Fixed navbar -->
+
+<div class="container">
+    <div ng-controller="HHRUController as hhru" ng-show="hhru.vacancies.items.length">
+        <div class="panel panel-default"  ng-repeat="vacancy in hhru.vacancies.items">
+            <div class="panel-heading">{{vacancy.name}}</div>
+            <div class="panel-body">
+                {{vacancy.description}}
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
