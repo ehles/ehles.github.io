@@ -1,0 +1,101 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300);
+body {
+  background: #34495E;
+}
+
+p {
+  font-family: Open Sans;
+  font-weight: 200;
+}
+
+.title h1 {
+  font-family: Open Sans;
+  font-weight: 200;
+  color: #64b1d5;
+}
+
+.card {
+  margin: 0 auto;
+  width: 25em;
+}
+
+.top {
+  background: #F0F4F7;
+  padding: .75em 2em 0em 2em;
+  border-top-left-radius: .6em;
+  border-top-right-radius: .6em;
+}
+.top:after {
+  content: '';
+  position: relative;
+  height: 0;
+  width: 0;
+  border-left: 1em solid transparent;
+  border-right: 1em solid transparent;
+  border-top: 1em solid #F0F4F7;
+  top: 1em;
+  left: 1em;
+  z-index: 5;
+}
+.top .top-text {
+  margin-top: .5em;
+  font-family: Open Sans;
+  font-weight: 200;
+}
+.top .top-text h3 {
+  font-family: Open Sans;
+  font-weight: 200;
+}
+.top .toggle {
+  color: #4d9cc9;
+  position: relative;
+  top: -.5em;
+}
+.top .toggle:hover, .top .toggle:focus {
+  text-decoration: underline;
+}
+.top .pic {
+  position: relative;
+  top: .2em;
+  height: 5em;
+  width: 5em;
+}
+
+.middle {
+  background: #fff;
+  padding: 1em 1em .5em 1em;
+  display: none;
+}
+.middle p {
+  margin-top: 1em;
+  padding: 0 1em 0 2em;
+}
+
+.final {
+  background: #4d9cc9;
+  padding: 1em;
+  border-bottom-left-radius: .6em;
+  border-bottom-right-radius: .6em;
+  -webkit-transition: all 500ms ease-in-out;
+          transition: all 500ms ease-in-out;
+}
+.final:hover, .final:focus {
+  background: #3986ad;
+}
+.final .reply {
+  color: #fff;
+  display: none;
+}
+.final .text {
+  color: #fff;
+  margin-left: .5em;
+  font-family: Open Sans;
+  font-weight: 200;
+}
+
+.close {
+  position: relative;
+  top: 1.75em;
+  left: .75em;
+  color: #4d9cc9;
+}
