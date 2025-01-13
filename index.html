@@ -1,47 +1,290 @@
-<!DOCTYPE html>
-<html >
-  <head>
-    <meta charset="UTF-8">
-    <title>0xD3D4</title>
-        <link rel="stylesheet" href="css/style.css">
-  </head>
-  <body>
-    <script id="vs" type="x-shader">
-  attribute vec3 eachPos;
-  uniform float transitionTime;
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>0xd3d4</title>
+        <style>
+            /* Основные стили */
+            body {
+                background-color: #000;
+                color: #00ffff; /* Неоновый голубой */
+                font-family: "Courier New", Courier, monospace;
+                font-size: 16px;
+                line-height: 1.5;
+                padding: 20px;
+                margin: 0;
+                overflow: hidden;
+            }
 
-  // fragment-shader
-  varying vec4 v_color;
+            .terminal {
+                background-color: #000;
+                color: #00ffff;
+                padding: 20px;
+                border: 2px solid #00ffff;
+                border-radius: 5px;
+                max-width: 800px;
+                margin: 0 auto;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            }
 
-  void main() {
-    // normalize position convert the value from 0 to 1. like ofClamp()?
-    vec3 p = normalize(eachPos);
-    vec3 pp = p;
-    // length?
-    float r = length(eachPos);
-    // calc "p" position
-    p = p + vec3(sin(r * 3.14 + transitionTime) * 0.3, cos(r * 3.14 * 2.0 + transitionTime) * 0.9, sin(r * 3.14 * 30.0  + transitionTime) * 2.5 * cos(transitionTime));
-    vec3 position = p + vec3(0, 0, -4.3 + sin(transitionTime));
-    float w = -position.z * 1.5;
+            /* Эффект сканирующей линии */
+            .terminal::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(rgba(0, 255, 255, 0.1) 50%, rgba(0, 255, 255, 0.2) 50%);
+                background-size: 100% 2px;
+                z-index: 1;
+                pointer-events: none;
+                animation: scanline 6s linear infinite;
+            }
 
-    gl_Position = vec4(vec3(position.x, position.y, position.z), w);
-    v_color = vec4(p * 0.7, 0.8);
-  }
-</script>
+            /* Эффект мерцания */
+            .terminal::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: radial-gradient(
+                    ellipse at center,
+                    rgba(0, 255, 255, 0.1) 0%,
+                    rgba(0, 255, 255, 0) 70%
+                );
+                z-index: 2;
+                pointer-events: none;
+                animation: flicker 0.1s infinite;
+            }
 
-<script id="fs" type="x-shader">
-precision mediump float;
-varying vec4 v_color;
-  void main() {
-    gl_FragColor = vec4(0.2, 0.9, 0.55, 0.44);
-    //gl_FragColor = v_color;
-  }
-</script>
-    
-        <script src="js/index.js"></script>
+            /* Стили текста */
+            .terminal pre {
+                margin: 0;
+                position: relative;
+                z-index: 3;
+                height: 240px; /* Увеличена высота до 240px */
+                overflow: hidden; /* Скрываем лишнее содержимое */
+            }
 
-    
-    
-    
-  </body>
+            .terminal a {
+                color: #ff00ff; /* Неоновый розовый */
+                text-decoration: none;
+            }
+
+            .terminal a:hover {
+                color: #ff00ff;
+                text-shadow:
+                    0 0 10px #ff00ff,
+                    0 0 20px #ff00ff;
+            }
+
+            /* Мигающий курсор */
+            .blinking-cursor {
+                font-weight: bold;
+                animation: blink 1s steps(2, start) infinite;
+            }
+
+            @keyframes blink {
+                to {
+                    visibility: hidden;
+                }
+            }
+
+            /* Анимация сканирующей линии */
+            @keyframes scanline {
+                0% {
+                    transform: translateY(-100%);
+                }
+                100% {
+                    transform: translateY(100%);
+                }
+            }
+
+            /* Анимация мерцания */
+            @keyframes flicker {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.8;
+                }
+            }
+
+            /* Свечение текста */
+            .glow {
+                text-shadow:
+                    0 0 5px #00ffff,
+                    0 0 10px #00ffff,
+                    0 0 20px #00ffff;
+            }
+
+            /* Дополнительные эффекты для футуристического стиля */
+            .terminal h1 {
+                color: #ff00ff; /* Неоновый розовый */
+                text-shadow:
+                    0 0 10px #ff00ff,
+                    0 0 20px #ff00ff;
+            }
+
+            .terminal p {
+                color: #00ffff; /* Неоновый голубой */
+                text-shadow:
+                    0 0 5px #00ffff,
+                    0 0 10px #00ffff;
+            }
+
+            /* Контейнер для боксов */
+            .boxes-container {
+                display: flex;
+                gap: 20px; /* Расстояние между боксами */
+                margin-top: 20px;
+            }
+
+            /* Бокс с языками и Tech Stack */
+            .language-box,
+            .tech-stack-box {
+                border: 2px solid #ff00ff; /* Неоновый розовый */
+                border-radius: 5px;
+                padding: 10px;
+                background-color: rgba(0, 0, 0, 0.5);
+                box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+                flex: 1; /* Равная ширина для обоих боксов */
+            }
+
+            .language-box h2,
+            .tech-stack-box h2 {
+                color: #ff00ff; /* Неоновый розовый */
+                text-shadow:
+                    0 0 10px #ff00ff,
+                    0 0 20px #ff00ff;
+                margin-top: 0;
+            }
+
+            .language-box ul,
+            .tech-stack-box ul {
+                list-style-type: none;
+                padding: 0;
+            }
+
+            .language-box li,
+            .tech-stack-box li {
+                color: #00ffff; /* Неоновый голубой */
+                text-shadow:
+                    0 0 5px #00ffff,
+                    0 0 10px #00ffff;
+                margin: 5px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="terminal">
+            <!-- Заголовок с ASCII-графикой -->
+            <pre id="ascii-art" class="glow"></pre>
+
+            <h1>D3D4 City</h1>
+            <p>
+                For example, here is a link to my GitHub profile:
+                <a href="https://github.com/ehles" target="_blank">GitHub</a>
+            </p>
+
+            <!-- Контейнер для боксов -->
+            <div class="boxes-container">
+                <!-- Бокс с языками -->
+                <div class="language-box">
+                    <h2>Languages</h2>
+                    <ul>
+                        <li>Go</li>
+                        <li>Python</li>
+                        <li>C/C++</li>
+                    </ul>
+                </div>
+
+                <!-- Бокс с Tech Stack -->
+                <div class="tech-stack-box">
+                    <h2>Tech</h2>
+                    <ul>
+                        <li>git</li>
+                        <li>k8s</li>
+                        <li>ClickHouse</li>
+                        <li>Linux</li>
+                        <li>S3</li>
+                        <li>VoIP(SIP/H.323)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p>><span class="blinking-cursor">_</span></p>
+        </div>
+
+        <script>
+            // Массив с ASCII-графикой
+            const asciiArt = [
+                `
+      $$\\  $$$$$$\\        $$\\ $$\\   $$\\
+      $$ |$$ ___$$\\       $$ |$$ |  $$ |
+ $$$$$$$ |\\_/   $$ | $$$$$$$ |$$ |  $$ |
+$$  __$$ |  $$$$$ / $$  __$$ |$$$$$$$$ |
+$$ /  $$ |  \\___$$\\ $$ /  $$ |\\_____$$ |
+$$ |  $$ |$$\\   $$ |$$ |  $$ |      $$ |
+\\$$$$$$$ |\\$$$$$$  |\\$$$$$$$ |      $$ |
+ \\_______| \\______/  \\_______|      \\__|
+            `,
+                `
+       /$$  /$$$$$$        /$$ /$$   /$$
+      | $$ /$$__  $$      | $$| $$  | $$
+  /$$$$$$$|__/  \\ $$  /$$$$$$$| $$  | $$
+ /$$__  $$   /$$$$$/ /$$__  $$| $$$$$$$$
+| $$  | $$  |___  $$| $$  | $$|_____  $$
+| $$  | $$ /$$  \\ $$| $$  | $$      | $$
+|  $$$$$$$|  $$$$$$/|  $$$$$$$      | $$
+ \\_______/ \\______/  \\_______/      |__/
+            `,
+                `
+       __   ______         __  __    __
+      |  \\ /     \\       |  \\|  \\  |  \\
+  ____| $$|  $$$$$$\\  ____| $$| $$  | $$
+ /      $$ \\$$__| $$ /      $$| $$__| $$
+|  $$$$$$$  |     $$|  $$$$$$$| $$    $$
+| $$  | $$ __\\$$$$$$| $$  | $$ \\$$$$$$$$
+| $$__| $$|  \\__| $$| $$__| $$      | $$
+ \\$$    $$ \\$$    $$ \\$$    $$      | $$
+  \\$$$$$$$  \\$$$$$$   \\$$$$$$$       \\$$
+            `,
+                `
+       __   ______         __  __    __
+      /  | /      \\       /  |/  |  /  |
+  ____$$ |/$$$$$$  |  ____$$ |$$ |  $$ |
+ /    $$ |$$ ___$$ | /    $$ |$$ |__$$ |
+/$$$$$$$ |  /   $$< /$$$$$$$ |$$    $$ |
+$$ |  $$ | _$$$$$  |$$ |  $$ |$$$$$$$$ |
+$$ \\__$$ |/  \\__$$ |$$ \\__$$ |      $$ |
+$$    $$ |$$    $$/ $$    $$ |      $$ |
+ $$$$$$$/  $$$$$$/   $$$$$$$/       $$/
+            `,
+            ];
+
+            // Индекс текущей ASCII-графики
+            let currentIndex = 0;
+            const asciiElement = document.getElementById("ascii-art");
+
+            // Функция для обновления ASCII-графики
+            function updateAsciiArt() {
+                asciiElement.textContent = asciiArt[currentIndex];
+                currentIndex = (currentIndex + 1) % asciiArt.length;
+            }
+
+            // Обновляем ASCII-графику каждые 0.5 секунды (500 мс)
+            setInterval(updateAsciiArt, 500);
+
+            // Инициализация первой ASCII-графики
+            updateAsciiArt();
+        </script>
+    </body>
 </html>
