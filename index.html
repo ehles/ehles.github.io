@@ -3,194 +3,25 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>0xd3d4</title>
-        <style>
-            /* Основные стили */
-            body {
-                background-color: #000;
-                color: #00ffff; /* Неоновый голубой */
-                font-family: "Courier New", Courier, monospace;
-                font-size: 16px;
-                line-height: 1.5;
-                padding: 20px;
-                margin: 0;
-                overflow: hidden;
-            }
-
-            .terminal {
-                background-color: #000;
-                color: #00ffff;
-                padding: 20px;
-                border: 2px solid #00ffff;
-                border-radius: 5px;
-                max-width: 800px;
-                margin: 0 auto;
-                position: relative;
-                overflow: hidden;
-                box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-            }
-
-            /* Эффект сканирующей линии */
-            .terminal::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(rgba(0, 255, 255, 0.1) 50%, rgba(0, 255, 255, 0.2) 50%);
-                background-size: 100% 2px;
-                z-index: 1;
-                pointer-events: none;
-                animation: scanline 6s linear infinite;
-            }
-
-            /* Эффект мерцания */
-            .terminal::after {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: radial-gradient(
-                    ellipse at center,
-                    rgba(0, 255, 255, 0.1) 0%,
-                    rgba(0, 255, 255, 0) 70%
-                );
-                z-index: 2;
-                pointer-events: none;
-                animation: flicker 0.1s infinite;
-            }
-
-            /* Стили текста */
-            .terminal pre {
-                margin: 0;
-                position: relative;
-                z-index: 3;
-                height: 240px; /* Увеличена высота до 240px */
-                overflow: hidden; /* Скрываем лишнее содержимое */
-            }
-
-            .terminal a {
-                color: #ff00ff; /* Неоновый розовый */
-                text-decoration: none;
-            }
-
-            .terminal a:hover {
-                color: #ff00ff;
-                text-shadow:
-                    0 0 10px #ff00ff,
-                    0 0 20px #ff00ff;
-            }
-
-            /* Мигающий курсор */
-            .blinking-cursor {
-                font-weight: bold;
-                animation: blink 1s steps(2, start) infinite;
-            }
-
-            @keyframes blink {
-                to {
-                    visibility: hidden;
-                }
-            }
-
-            /* Анимация сканирующей линии */
-            @keyframes scanline {
-                0% {
-                    transform: translateY(-100%);
-                }
-                100% {
-                    transform: translateY(100%);
-                }
-            }
-
-            /* Анимация мерцания */
-            @keyframes flicker {
-                0%,
-                100% {
-                    opacity: 1;
-                }
-                50% {
-                    opacity: 0.8;
-                }
-            }
-
-            /* Свечение текста */
-            .glow {
-                text-shadow:
-                    0 0 5px #00ffff,
-                    0 0 10px #00ffff,
-                    0 0 20px #00ffff;
-            }
-
-            /* Дополнительные эффекты для футуристического стиля */
-            .terminal h1 {
-                color: #ff00ff; /* Неоновый розовый */
-                text-shadow:
-                    0 0 10px #ff00ff,
-                    0 0 20px #ff00ff;
-            }
-
-            .terminal p {
-                color: #00ffff; /* Неоновый голубой */
-                text-shadow:
-                    0 0 5px #00ffff,
-                    0 0 10px #00ffff;
-            }
-
-            /* Контейнер для боксов */
-            .boxes-container {
-                display: flex;
-                gap: 20px; /* Расстояние между боксами */
-                margin-top: 20px;
-            }
-
-            /* Бокс с языками и Tech Stack */
-            .language-box,
-            .tech-stack-box {
-                border: 2px solid #ff00ff; /* Неоновый розовый */
-                border-radius: 5px;
-                padding: 10px;
-                background-color: rgba(0, 0, 0, 0.5);
-                box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
-                flex: 1; /* Равная ширина для обоих боксов */
-            }
-
-            .language-box h2,
-            .tech-stack-box h2 {
-                color: #ff00ff; /* Неоновый розовый */
-                text-shadow:
-                    0 0 10px #ff00ff,
-                    0 0 20px #ff00ff;
-                margin-top: 0;
-            }
-
-            .language-box ul,
-            .tech-stack-box ul {
-                list-style-type: none;
-                padding: 0;
-            }
-
-            .language-box li,
-            .tech-stack-box li {
-                color: #00ffff; /* Неоновый голубой */
-                text-shadow:
-                    0 0 5px #00ffff,
-                    0 0 10px #00ffff;
-                margin: 5px 0;
-            }
-        </style>
+        <title>d3d4 - Futuristic Terminal</title>
+        <!-- Подключаем основные стили -->
+        <link rel="stylesheet" href="style.css" />
+        <!-- Подключаем тему -->
+        <link rel="stylesheet" href="theme-futuristic.css" />
     </head>
     <body>
         <div class="terminal">
             <!-- Заголовок с ASCII-графикой -->
             <pre id="ascii-art" class="glow"></pre>
 
-            <h1>D3D4 City</h1>
+            <h1>Welcome to d3d4 Futuristic Terminal</h1>
+            <p>This is a futuristic-style terminal page inspired by Cool Retro Term.</p>
             <p>
-                Here is a link to my GitHub profile:
+                You can add more content here, such as links, code snippets, or even interactive
+                elements.
+            </p>
+            <p>
+                For example, here is a link to my GitHub profile:
                 <a href="https://github.com/ehles" target="_blank">GitHub</a>
             </p>
 
@@ -202,20 +33,17 @@
                     <ul>
                         <li>Go</li>
                         <li>Python</li>
-                        <li>C/C++</li>
                     </ul>
                 </div>
 
                 <!-- Бокс с Tech Stack -->
                 <div class="tech-stack-box">
-                    <h2>Tech</h2>
+                    <h2>Tech Stack</h2>
                     <ul>
-                        <li>git</li>
                         <li>k8s</li>
                         <li>ClickHouse</li>
                         <li>Linux</li>
                         <li>S3</li>
-                        <li>VoIP(SIP/H.323)</li>
                     </ul>
                 </div>
             </div>

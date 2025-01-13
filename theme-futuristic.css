@@ -1,0 +1,76 @@
+/* Эффект сканирующей линии */
+.terminal::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 255, 255, 0.1) 50%, rgba(0, 255, 255, 0.2) 50%);
+    background-size: 100% 2px;
+    z-index: 1;
+    pointer-events: none;
+    animation: scanline 6s linear infinite;
+}
+
+/* Эффект мерцания */
+.terminal::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(0, 255, 255, 0.1) 0%,
+        rgba(0, 255, 255, 0) 70%
+    );
+    z-index: 2;
+    pointer-events: none;
+    animation: flicker 0.1s infinite;
+}
+
+/* Анимация сканирующей линии */
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+/* Анимация мерцания */
+@keyframes flicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Свечение текста */
+.glow {
+    text-shadow:
+        0 0 5px #00ffff,
+        0 0 10px #00ffff,
+        0 0 20px #00ffff;
+}
+
+/* Дополнительные эффекты для футуристического стиля */
+.terminal h1 {
+    color: #ff00ff; /* Неоновый розовый */
+    text-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #ff00ff;
+}
+
+.terminal p {
+    color: #00ffff; /* Неоновый голубой */
+    text-shadow:
+        0 0 5px #00ffff,
+        0 0 10px #00ffff;
+}

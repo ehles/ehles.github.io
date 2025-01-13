@@ -1,0 +1,99 @@
+/* Основные стили */
+body {
+    background-color: #000;
+    color: #00ffff; /* Неоновый голубой */
+    font-family: "Courier New", Courier, monospace;
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 20px;
+    margin: 0;
+    overflow: hidden;
+}
+
+.terminal {
+    background-color: #000;
+    color: #00ffff;
+    padding: 20px;
+    border: 2px solid #00ffff;
+    border-radius: 5px;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+/* Стили текста */
+.terminal pre {
+    margin: 0;
+    position: relative;
+    z-index: 3;
+    height: 240px; /* Увеличена высота до 240px */
+    overflow: hidden; /* Скрываем лишнее содержимое */
+}
+
+.terminal a {
+    color: #ff00ff; /* Неоновый розовый */
+    text-decoration: none;
+}
+
+.terminal a:hover {
+    color: #ff00ff;
+    text-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #ff00ff;
+}
+
+/* Мигающий курсор */
+.blinking-cursor {
+    font-weight: bold;
+    animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+    to {
+        visibility: hidden;
+    }
+}
+
+/* Контейнер для боксов */
+.boxes-container {
+    display: flex;
+    gap: 20px; /* Расстояние между боксами */
+    margin-top: 20px;
+}
+
+/* Бокс с языками и Tech Stack */
+.language-box,
+.tech-stack-box {
+    border: 2px solid #ff00ff; /* Неоновый розовый */
+    border-radius: 5px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    flex: 1; /* Равная ширина для обоих боксов */
+}
+
+.language-box h2,
+.tech-stack-box h2 {
+    color: #ff00ff; /* Неоновый розовый */
+    text-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #ff00ff;
+    margin-top: 0;
+}
+
+.language-box ul,
+.tech-stack-box ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.language-box li,
+.tech-stack-box li {
+    color: #00ffff; /* Неоновый голубой */
+    text-shadow:
+        0 0 5px #00ffff,
+        0 0 10px #00ffff;
+    margin: 5px 0;
+}
