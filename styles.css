@@ -97,3 +97,31 @@ body {
         0 0 10px #00ffff;
     margin: 5px 0;
 }
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    body {
+        padding: 10px; /* Уменьшаем отступы */
+        font-size: 14px; /* Уменьшаем размер шрифта */
+    }
+
+    .terminal {
+        padding: 10px; /* Уменьшаем отступы внутри терминала */
+    }
+
+    .terminal pre {
+        height: 180px; /* Уменьшаем высоту ASCII-графики */
+        font-size: 12px; /* Уменьшаем размер шрифта для ASCII-графики */
+    }
+
+    .boxes-container {
+        flex-direction: column; /* Размещаем боксы вертикально */
+        gap: 10px; /* Уменьшаем расстояние между боксами */
+    }
+
+    .language-box,
+    .tech-stack-box {
+        flex: none; /* Отключаем flex для боксов */
+        width: 100%; /* Занимаем всю ширину */
+    }
+}
