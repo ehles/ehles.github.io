@@ -1,0 +1,106 @@
+/* Retro стиль */
+body {
+    background-color: #000;
+    color: #00ff00; /* Зеленый цвет текста */
+}
+
+.terminal {
+    border: 2px solid #00ff00; /* Зеленая рамка */
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); /* Зеленое свечение */
+}
+
+/* Эффект сканирующей линии */
+.terminal::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 255, 0, 0.1) 50%, rgba(0, 255, 0, 0.2) 50%);
+    background-size: 100% 2px;
+    z-index: 1;
+    pointer-events: none;
+    animation: scanline 6s linear infinite;
+}
+
+/* Эффект мерцания */
+.terminal::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(0, 255, 0, 0.1) 0%, rgba(0, 255, 0, 0) 70%);
+    z-index: 2;
+    pointer-events: none;
+    animation: flicker 0.1s infinite;
+}
+
+/* Анимация сканирующей линии */
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+/* Анимация мерцания */
+@keyframes flicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Свечение текста */
+.glow {
+    text-shadow:
+        0 0 5px #00ff00,
+        0 0 10px #00ff00,
+        0 0 20px #00ff00;
+}
+
+/* Дополнительные эффекты для Retro стиля */
+.terminal h1 {
+    color: #00ff00; /* Зеленый цвет заголовка */
+    text-shadow:
+        0 0 10px #00ff00,
+        0 0 20px #00ff00;
+}
+
+.terminal p {
+    color: #00ff00; /* Зеленый цвет текста */
+    text-shadow:
+        0 0 5px #00ff00,
+        0 0 10px #00ff00;
+}
+
+/* Бокс с языками и Tech Stack */
+.language-box,
+.tech-stack-box {
+    border: 2px solid #00ff00; /* Зеленая рамка */
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); /* Зеленое свечение */
+}
+
+.language-box h2,
+.tech-stack-box h2 {
+    color: #00ff00; /* Зеленый цвет заголовка */
+    text-shadow:
+        0 0 10px #00ff00,
+        0 0 20px #00ff00;
+}
+
+.language-box li,
+.tech-stack-box li {
+    color: #00ff00; /* Зеленый цвет текста */
+    text-shadow:
+        0 0 5px #00ff00,
+        0 0 10px #00ff00;
+}
