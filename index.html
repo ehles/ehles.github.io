@@ -3,11 +3,14 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Terminal d3d4</title>
-        <!-- Подключаем основные стили -->
+        <title>Denis · 0xd3d4</title>
+        <meta name="description" content="Denis (0xd3d4), software engineer in Nizhny Novgorod: Go, Python, Kubernetes, ClickHouse. Author of the Android app «Радиолюбительский экзамен»." />
+        <meta name="theme-color" content="#c4c4c0" />
+        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+        <link rel="preload" href="assets/fonts/unbounded-latin.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="assets/fonts/handjet-latin.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="stylesheet" href="styles.css" />
-        <!-- Подключаем тему -->
-        <link rel="stylesheet" href="theme-futuristic.css" />
+        <script>document.documentElement.classList.add("js");</script>
 
         <!-- Yandex.Metrika counter -->
         <script type="text/javascript" >
@@ -16,7 +19,7 @@
             for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
             k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
             (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-        
+
             ym(99518448, "init", {
                 clickmap:true,
                 trackLinks:true,
@@ -26,107 +29,149 @@
         </script>
         <noscript><div><img src="https://mc.yandex.ru/watch/99518448" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
         <!-- /Yandex.Metrika counter -->
-
     </head>
     <body>
-        <div class="terminal">
-            <!-- Заголовок с ASCII-графикой -->
-            <pre id="ascii-art" class="glow"></pre>
+        <!-- The panel: backplane (moves slower than the page), ink, pixel grid, glass -->
+        <div class="backplane" aria-hidden="true"><div class="backplane__grain" data-grain></div></div>
+        <canvas class="ink" data-ink-canvas aria-hidden="true"></canvas>
 
-            <h1>0xd3d4</h1>
-            <p>
-                Here is a link to my GitHub profile:
-                <a href="https://github.com/ehles" target="_blank">GitHub</a>
-            </p>
+        <header class="status">
+            <a class="status__name" href="#top">d3d4.ru</a>
+            <nav class="status__nav" aria-label="Sections">
+                <a href="#about">About</a>
+                <a href="#app">Radio exam</a>
+                <a href="#code">Code</a>
+                <a href="#contact">73</a>
+            </nav>
+            <span class="status__clock" aria-label="Local time in Nizhny Novgorod">
+                <span class="status__signal" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                <span data-clock>NN --:--</span>
+            </span>
+        </header>
 
-            <!-- Контейнер для боксов -->
-            <div class="boxes-container">
-                <!-- Бокс с языками -->
-                <div class="language-box">
-                    <h2>Languages</h2>
-                    <ul>
-                        <li>Go</li>
-                        <li>Python</li>
-                    </ul>
+        <main id="top">
+            <!-- Intro: one panel held on screen while the ink flows from word to word -->
+            <section class="intro" data-intro style="--n: 5">
+                <div class="intro__screen">
+                    <h1 class="intro__title">Denis, 0xd3d4. Software engineer in Nizhny Novgorod.</h1>
+                    <div class="intro__display" data-display aria-hidden="true">
+                        <span class="intro__fallback">0xd3d4</span>
+                    </div>
+                    <ol class="intro__phrases" data-phrases>
+                        <li data-lines="0XD3D4">d3d4.ru, a personal page</li>
+                        <li data-lines="DENIS">Software engineer</li>
+                        <li data-lines="GO|PYTHON">Backend services, tools and scripts</li>
+                        <li data-lines="NIZHNY|NOVGOROD">Where the Oka meets the Volga</li>
+                        <li data-lines="RADIO|EXAM">An Android app for radio amateurs</li>
+                    </ol>
+                    <p class="intro__foot">
+                        <span data-caption>d3d4.ru, a personal page</span>
+                        <span class="intro__count"><span data-count>1</span>/5 <span class="intro__hint">scroll</span></span>
+                    </p>
                 </div>
+            </section>
 
-                <!-- Бокс с Tech Stack -->
-                <div class="tech-stack-box">
-                    <h2>Tech Stack</h2>
-                    <ul>
-                        <li>k8s</li>
-                        <li>ClickHouse</li>
-                        <li>Linux</li>
-                        <li>S3</li>
-                    </ul>
+            <!-- About -->
+            <section class="block" id="about" data-shadow aria-labelledby="about-title">
+                <h2 class="ink-title" id="about-title" data-ink>About</h2>
+                <div class="about">
+                    <p class="about__text">
+                        I build backend services in Go and Python and run them on Linux: Kubernetes,
+                        ClickHouse, S3. Before that I wrote test tooling, and some of it is still on
+                        GitHub. I also make an Android app that helps people pass the amateur radio exam.
+                    </p>
+                    <dl class="spec">
+                        <div><dt>Call sign</dt><dd>R3TBE</dd></div>
+                        <div><dt>QTH</dt><dd>Nizhny Novgorod</dd></div>
+                        <div><dt>Works at</dt><dd>YADRO</dd></div>
+                        <div><dt>On GitHub</dt><dd>since 2011</dd></div>
+                        <div><dt>Handle</dt><dd><button class="hex" type="button" data-hex>0xd3d4</button></dd></div>
+                        <div><dt>Languages</dt><dd>Go, Python, Shell</dd></div>
+                        <div><dt>Runs on</dt><dd>Kubernetes, ClickHouse, Linux, S3</dd></div>
+                    </dl>
                 </div>
-            </div>
+            </section>
 
-            <p>><span class="blinking-cursor">_</span></p>
-        </div>
+            <!-- The app -->
+            <section class="block" id="app" data-shadow aria-labelledby="app-title">
+                <h2 class="ink-title" id="app-title" data-ink>Radio exam</h2>
+                <div class="app">
+                    <div class="app__about">
+                        <p class="app__text">
+                            <span lang="ru">«Радиолюбительский экзамен»</span> is an Android app for the
+                            Russian amateur radio operator exam, from category 4 up to category 1. Tests
+                            follow the real exam: the same number of questions, the same pass mark.
+                        </p>
+                        <dl class="spec spec--leaders">
+                            <div><dt>Categories</dt><dd>4</dd></div>
+                            <div><dt>Modes</dt><dd>test, study, training</dd></div>
+                            <div><dt>Questions, category 1</dt><dd>426</dd></div>
+                            <div><dt>Rating on RuStore</dt><dd>4.9 (12)</dd></div>
+                            <div><dt>Installs</dt><dd>1k+</dd></div>
+                        </dl>
+                        <p><a class="key" href="https://www.rustore.ru/catalog/app/ru.d3d4.ham">Install from RuStore</a></p>
+                    </div>
 
-        <script>
-            // Массив с ASCII-графикой
-            const asciiArt = [
-                `
-      $$\\  $$$$$$\\        $$\\ $$\\   $$\\
-      $$ |$$ ___$$\\       $$ |$$ |  $$ |
- $$$$$$$ |\\_/   $$ | $$$$$$$ |$$ |  $$ |
-$$  __$$ |  $$$$$ / $$  __$$ |$$$$$$$$ |
-$$ /  $$ |  \\___$$\\ $$ /  $$ |\\_____$$ |
-$$ |  $$ |$$\\   $$ |$$ |  $$ |      $$ |
-\\$$$$$$$ |\\$$$$$$  |\\$$$$$$$ |      $$ |
- \\_______| \\______/  \\_______|      \\__|
-            `,
-                `
-       /$$  /$$$$$$        /$$ /$$   /$$
-      | $$ /$$__  $$      | $$| $$  | $$
-  /$$$$$$$|__/  \\ $$  /$$$$$$$| $$  | $$
- /$$__  $$   /$$$$$/ /$$__  $$| $$$$$$$$
-| $$  | $$  |___  $$| $$  | $$|_____  $$
-| $$  | $$ /$$  \\ $$| $$  | $$      | $$
-|  $$$$$$$|  $$$$$$/|  $$$$$$$      | $$
- \\_______/ \\______/  \\_______/      |__/
-            `,
-                `
-       __   ______         __  __    __
-      |  \\ /     \\       |  \\|  \\  |  \\
-  ____| $$|  $$$$$$\\  ____| $$| $$  | $$
- /      $$ \\$$__| $$ /      $$| $$__| $$
-|  $$$$$$$  |     $$|  $$$$$$$| $$    $$
-| $$  | $$ __\\$$$$$$| $$  | $$ \\$$$$$$$$
-| $$__| $$|  \\__| $$| $$__| $$      | $$
- \\$$    $$ \\$$    $$ \\$$    $$      | $$
-  \\$$$$$$$  \\$$$$$$   \\$$$$$$$       \\$$
-            `,
-                `
-       __   ______         __  __    __
-      /  | /      \\       /  |/  |  /  |
-  ____$$ |/$$$$$$  |  ____$$ |$$ |  $$ |
- /    $$ |$$ ___$$ | /    $$ |$$ |__$$ |
-/$$$$$$$ |  /   $$< /$$$$$$$ |$$    $$ |
-$$ |  $$ | _$$$$$  |$$ |  $$ |$$$$$$$$ |
-$$ \\__$$ |/  \\__$$ |$$ \\__$$ |      $$ |
-$$    $$ |$$    $$/ $$    $$ |      $$ |
- $$$$$$$/  $$$$$$/   $$$$$$$/       $$/
-            `,
-            ];
+                    <div class="device" lang="ru" data-quiz>
+                        <p class="device__bar"><span>Вопрос <span data-qnum>12</span></span><span>Категория 1</span></p>
+                        <h3 class="device__q" data-q>Какой из перечисленных позывных сигналов образован для любительской службы?</h3>
+                        <ol class="device__options" data-options>
+                            <li><button type="button" data-correct>RA9EM</button></li>
+                            <li><button type="button">RMT</button></li>
+                            <li><button type="button">MO13</button></li>
+                            <li><button type="button">ФОНАРЬ</button></li>
+                        </ol>
+                        <p class="device__result" aria-live="polite" data-result>Выберите ответ.</p>
+                        <button class="device__next" type="button" data-next hidden>Следующий вопрос</button>
+                    </div>
+                </div>
+            </section>
 
-            // Индекс текущей ASCII-графики
-            let currentIndex = 0;
-            const asciiElement = document.getElementById("ascii-art");
+            <!-- Code -->
+            <section class="block" id="code" data-shadow aria-labelledby="code-title">
+                <h2 class="ink-title" id="code-title" data-ink>Code</h2>
+                <p class="code__note">Read live from <a href="https://github.com/ehles">github.com/ehles</a>, newest first.</p>
+                <ul class="repos" data-repos>
+                    <li><a href="https://www.rustore.ru/catalog/app/ru.d3d4.ham"><span>Radio exam app</span><span>Android</span><span>2026</span></a></li>
+                    <li><a href="https://github.com/ehles/tg2json"><span>tg2json</span><span>Python</span><span>2025</span></a></li>
+                    <li><a href="https://github.com/ehles/ehles.github.io"><span>ehles.github.io</span><span>HTML</span><span>2025</span></a></li>
+                    <li><a href="https://github.com/ehles/microservice_sample"><span>microservice_sample</span><span>Python</span><span>2025</span></a></li>
+                    <li><a href="https://github.com/ehles/monty_hall_demo"><span>monty_hall_demo</span><span>Python</span><span>2024</span></a></li>
+                    <li><a href="https://github.com/ehles/ehles.pyAvg"><span>ehles.pyAvg</span><span>Python</span><span>2024</span></a></li>
+                    <li><a href="https://github.com/ehles/awesome"><span>awesome</span><span>List</span><span>2024</span></a></li>
+                    <li><a href="https://github.com/ehles/viber_secret_chat_pin"><span>viber_secret_chat_pin</span><span>Python</span><span>2023</span></a></li>
+                    <li><a href="https://github.com/ehles/fpv"><span>fpv</span><span>Notes</span><span>2020</span></a></li>
+                    <li><a href="https://github.com/ehles/aux_scripts"><span>aux_scripts</span><span>Shell</span><span>2017</span></a></li>
+                    <li><a href="https://github.com/ehles/trep"><span>trep</span><span>Python</span><span>2016</span></a></li>
+                    <li><a href="https://github.com/ehles/rst2tr"><span>rst2tr</span><span>Python</span><span>2016</span></a></li>
+                    <li><a href="https://github.com/ehles/dotfiles"><span>dotfiles</span><span>Shell</span><span>2016</span></a></li>
+                    <li><a href="https://github.com/ehles/trusty"><span>trusty</span><span>Python</span><span>2016</span></a></li>
+                    <li><a href="https://github.com/ehles/testerstools-radius-server"><span>testerstools-radius-server</span><span>Python</span><span>2015</span></a></li>
+                    <li><a href="https://github.com/ehles/slowpoke_proxy"><span>slowpoke_proxy</span><span>Python</span><span>2014</span></a></li>
+                </ul>
+            </section>
 
-            // Функция для обновления ASCII-графики
-            function updateAsciiArt() {
-                asciiElement.textContent = asciiArt[currentIndex];
-                currentIndex = (currentIndex + 1) % asciiArt.length;
-            }
+            <!-- Contact -->
+            <section class="block" id="contact" data-shadow aria-labelledby="contact-title">
+                <h2 class="ink-title" id="contact-title" data-ink>73</h2>
+                <p class="contact__note">Radio amateurs end a contact with 73: best regards.</p>
+                <dl class="spec spec--big">
+                    <div><dt>GitHub</dt><dd><a href="https://github.com/ehles">github.com/ehles</a></dd></div>
+                    <div><dt>RuStore</dt><dd><a href="https://www.rustore.ru/catalog/app/ru.d3d4.ham">ru.d3d4.ham</a></dd></div>
+                    <div><dt>QTH</dt><dd>Nizhny Novgorod</dd></div>
+                    <div><dt>Time</dt><dd data-clock-long>UTC+3</dd></div>
+                </dl>
+            </section>
+        </main>
 
-            // Обновляем ASCII-графику каждые 0.5 секунды (500 мс)
-            setInterval(updateAsciiArt, 500);
+        <footer class="foot" data-shadow>
+            <span>© Denis, 0xd3d4</span>
+            <a href="https://github.com/ehles/ehles.github.io">Source on GitHub</a>
+        </footer>
 
-            // Инициализация первой ASCII-графики
-            updateAsciiArt();
-        </script>
+        <div class="grid" aria-hidden="true"></div>
+        <div class="glass" aria-hidden="true"><div class="glass__sheen" data-sheen></div></div>
+
+        <script src="script.js" defer></script>
     </body>
 </html>
