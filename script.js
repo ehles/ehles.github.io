@@ -59,6 +59,72 @@ function rasterize(lines, w, h, align) {
     return { xs, ys };
 }
 
+// A photograph becomes ink: scaled to w×h cells and error-diffused (Floyd–Steinberg)
+function rasterizePicture(img, w, h, invert) {
+    raster.width = w;
+    raster.height = h;
+    rctx.clearRect(0, 0, w, h);
+    rctx.drawImage(img, 0, 0, w, h);
+    const data = rctx.getImageData(0, 0, w, h).data;
+    const lum = new Float32Array(w * h);
+    for (let i = 0; i < lum.length; i++) {
+        // a cut-out picture: where it is transparent, the glass shows
+        const alpha = data[i * 4 + 3] / 255;
+        const v = 1 - alpha * (1 - data[i * 4] / 255);
+        // a negative: the picture's lifted black backdrop turns into clean glass
+        lum[i] = invert ? 1 - clamp((v - 0.12) / 0.88, 0, 1) : v;
+    }
+    const xs = [];
+    const ys = [];
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const i = y * w + x;
+            const ink = lum[i] < 0.5;
+            if (ink) {
+                xs.push(x);
+                ys.push(y);
+            }
+            const err = lum[i] - (ink ? 0 : 1);
+            if (x + 1 < w) lum[i + 1] += (err * 7) / 16;
+            if (y + 1 < h) {
+                if (x > 0) lum[i + w - 1] += (err * 3) / 16;
+                lum[i + w] += (err * 5) / 16;
+                if (x + 1 < w) lum[i + w + 1] += err / 16;
+            }
+        }
+    }
+    return { xs, ys };
+}
+
+const shifted = (set, dx, dy) => ({ xs: set.xs.map((x) => x + dx), ys: set.ys.map((y) => y + dy) });
+
+// The words then the portrait on a wide panel; the portrait above the words on a tall one
+function rasterizeWithPicture(lines, img, w, h, invert) {
+    const ratio = img.naturalWidth / img.naturalHeight;
+    let picture;
+    let words;
+    if (w / h > 1.25) {
+        const ph = h;
+        const pw = Math.round(ph * ratio);
+        const gap = Math.round(w * 0.05);
+        const tw = w - pw - gap;
+        const th = Math.round(h * 0.5);
+        picture = shifted(rasterizePicture(img, pw, ph, invert), w - pw, 0);
+        words = shifted(rasterize(lines, tw, th, "center"), 0, Math.round((h - th) / 2));
+    } else {
+        let ph = Math.round(h * 0.64);
+        let pw = Math.round(ph * ratio);
+        if (pw > w) {
+            pw = w;
+            ph = Math.round(pw / ratio);
+        }
+        const gap = Math.round(h * 0.05);
+        picture = shifted(rasterizePicture(img, pw, ph, invert), Math.round((w - pw) / 2), 0);
+        words = shifted(rasterize(lines, w, h - ph - gap, "center"), 0, ph + gap);
+    }
+    return { xs: picture.xs.concat(words.xs), ys: picture.ys.concat(words.ys), picture };
+}
+
 // Pair every drop of ink in A with a place in B. Column order keeps left letters flowing
 // into left letters; the delay sends the flow across as a wave, the sag lets drops hang.
 function makeFlow(A, B, w) {
@@ -153,6 +219,7 @@ const phraseItems = [...document.querySelectorAll("[data-phrases] li")];
 const caption = document.querySelector("[data-caption]");
 const count = document.querySelector("[data-count]");
 const titles = [...document.querySelectorAll("[data-ink]")].map((el) => ({ el, flow: null }));
+const pictures = new Map(); // phrase → loaded portrait
 let introFlows = [];
 let lastPhrase = -1;
 
@@ -170,8 +237,16 @@ function build() {
     const box = display.getBoundingClientRect();
     const w = Math.floor(box.width / CELL);
     const h = Math.floor(box.height / CELL);
-    const sets = phraseItems.map((li) => rasterize(li.dataset.lines.split("|"), w, h, "center"));
+    const sets = phraseItems.map((li) => {
+        const lines = li.dataset.lines.split("|");
+        const picture = pictures.get(li);
+        return picture
+            ? rasterizeWithPicture(lines, picture, w, h, "invert" in li.dataset)
+            : rasterize(lines, w, h, "center");
+    });
     introFlows = sets.slice(1).map((set, i) => makeFlow(sets[i], set, w));
+    vapourPhrase = phraseItems.findIndex((li, i) => "vapour" in li.dataset && sets[i].picture);
+    if (vapourPhrase >= 0) setVapourSource(sets[vapourPhrase].picture);
 
     for (const title of titles) {
         const r = title.el.getBoundingClientRect();
@@ -196,7 +271,20 @@ function stampIntro() {
     let t = clamp((p - k - 0.3) / 0.45, 0, 1);
     if (reduceMotion) t = t < 0.5 ? 0 : 1;
     const d = display.getBoundingClientRect();
-    stamp(introFlows[k], t, Math.round(d.left / CELL), Math.round(d.top / CELL));
+    const ox = Math.round(d.left / CELL);
+    const oy = Math.round(d.top / CELL);
+    stamp(introFlows[k], t, ox, oy);
+
+    // the portrait evaporates only while it stands whole on the panel
+    let strength = 0;
+    if (k === vapourPhrase) strength = 1 - t * 3;
+    else if (k + 1 === vapourPhrase) strength = t * 3 - 2;
+    if (!reduceMotion && strength > 0) {
+        stepVapour(ox, oy, clamp(strength, 0, 1));
+        ambient = true;
+    } else {
+        resetVapour();
+    }
 
     const current = k + (t >= 0.5 ? 1 : 0);
     if (current !== lastPhrase) {
@@ -214,6 +302,97 @@ function stampTitles() {
         const t = reduceMotion ? 1 : clamp((vh * 0.98 - r.top) / (vh * 0.45), 0, 1);
         // the pool stays dry until the heading starts to fill
         if (t > 0) stamp(title.flow, t, Math.round(r.left / CELL), Math.round(r.top / CELL));
+    }
+}
+
+/* ---------- Vapour: the figure itself dissolves into flying pixels ---------- */
+
+const VAPOUR_MAX = 6000;
+const vapour = {
+    n: 0,
+    x: new Float32Array(VAPOUR_MAX),
+    y: new Float32Array(VAPOUR_MAX),
+    vx: new Float32Array(VAPOUR_MAX),
+    vy: new Float32Array(VAPOUR_MAX),
+    age: new Float32Array(VAPOUR_MAX),
+    life: new Float32Array(VAPOUR_MAX),
+};
+let vapourPhrase = -1;
+let source = null; // the portrait's cells, how eager each is to leave, and until when it is gone
+let tick = 0;
+
+function setVapourSource(picture) {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    for (const x of picture.xs) {
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+    }
+    // the left half holds; the right half gives itself up, more and more towards the edge
+    const mid = (minX + maxX) / 2;
+    const eager = picture.xs.map((x) => (x > mid ? ((x - mid) / (maxX - mid)) ** 1.6 : 0));
+    source = {
+        xs: picture.xs,
+        ys: picture.ys,
+        eager,
+        goneUntil: new Float32Array(picture.xs.length),
+    };
+    vapour.n = 0;
+}
+
+function resetVapour() {
+    if (source) source.goneUntil.fill(0);
+    vapour.n = 0;
+}
+
+function stepVapour(ox, oy, strength) {
+    const v = vapour;
+    if (!source || !source.xs.length) return;
+    tick += 1;
+
+    // each frame a share of the figure lets go; a pixel stays gone for a few seconds,
+    // so the holes pile up into a figure that is visibly coming apart
+    const attempts = Math.round(source.xs.length * 0.014 * strength);
+    for (let a = 0; a < attempts; a++) {
+        const pick = Math.floor(Math.random() * source.xs.length);
+        if (source.goneUntil[pick] > tick || Math.random() > source.eager[pick]) continue;
+        source.goneUntil[pick] = tick + 90 + Math.random() * 240;
+        if (v.n >= VAPOUR_MAX) continue;
+        const i = v.n++;
+        v.x[i] = source.xs[pick];
+        v.y[i] = source.ys[pick];
+        v.vx[i] = 0.08 + Math.random() * 0.27;
+        v.vy[i] = -(0.04 + Math.random() * 0.2);
+        v.age[i] = 0;
+        v.life[i] = 80 + Math.random() * 140;
+    }
+
+    // the holes the figure has lost
+    for (let i = 0; i < source.xs.length; i++) {
+        if (source.goneUntil[i] <= tick) continue;
+        const hx = ox + source.xs[i];
+        const hy = oy + source.ys[i];
+        if (hx >= 0 && hy >= 0 && hx < cols && hy < rows) acc[hy * cols + hx] = 0;
+    }
+
+    // the pixels in flight, thinning out as they rise
+    for (let i = 0; i < v.n; i++) {
+        v.age[i] += 1;
+        if (v.age[i] >= v.life[i]) {
+            // retire: the last particle takes this slot
+            const last = --v.n;
+            for (const key of ["x", "y", "vx", "vy", "age", "life"]) v[key][i] = v[key][last];
+            i--;
+            continue;
+        }
+        v.x[i] += v.vx[i] + Math.sin((v.age[i] + i) * 0.2) * 0.1;
+        v.y[i] += v.vy[i];
+        v.vy[i] -= 0.0025;
+
+        const fade = (1 - v.age[i] / v.life[i]) * strength;
+        const cx = Math.round(ox + v.x[i]);
+        const cy = Math.round(oy + v.y[i]);
+        if (Math.random() < fade && cx >= 0 && cy >= 0 && cx < cols && cy < rows) acc[cy * cols + cx] = 1;
     }
 }
 
@@ -256,14 +435,16 @@ function parallax() {
 /* ---------- Frame loop ---------- */
 
 let running = false;
+let ambient = false; // something on the panel moves by itself this frame
 
 function frame() {
     acc.fill(0);
+    ambient = false;
     stampIntro();
     stampTitles();
     const settling = paint();
     parallax();
-    if (settling) requestAnimationFrame(frame);
+    if (settling || ambient) requestAnimationFrame(frame);
     else running = false;
 }
 
@@ -280,6 +461,20 @@ async function startPanel() {
     } catch {
         // draw with the fallback face
     }
+    await Promise.all(
+        phraseItems
+            .filter((li) => li.dataset.picture)
+            .map(async (li) => {
+                const img = new Image();
+                img.src = li.dataset.picture;
+                try {
+                    await img.decode();
+                    pictures.set(li, img);
+                } catch {
+                    // the phrase is drawn without its picture
+                }
+            }),
+    );
     build();
     root.classList.add("lcd-ready");
     kick();
@@ -378,10 +573,10 @@ function setupQuiz() {
     });
 }
 
-// 0xd3d4 → decimal → binary, one step per press
+// 0xD3D4 → decimal → binary, one step per press
 function setupHex() {
     const button = document.querySelector("[data-hex]");
-    const forms = ["0xd3d4", "54228", "1101 0011 1101 0100"];
+    const forms = ["0xD3D4", "54228", "1101 0011 1101 0100"];
     let i = 0;
     button.addEventListener("click", () => {
         i = (i + 1) % forms.length;
@@ -404,37 +599,7 @@ function setupClock() {
     setInterval(tick, 1000);
 }
 
-// Replace the baked-in list with the live one from GitHub; keep the static one on any failure
-async function setupRepos() {
-    const list = document.querySelector("[data-repos]");
-    try {
-        const response = await fetch("https://api.github.com/users/ehles/repos?sort=pushed&per_page=100");
-        if (!response.ok) return;
-        const repos = (await response.json()).filter((r) => !r.fork && r.name !== "ehles" && r.name !== "tests");
-        if (!repos.length) return;
-        const app = list.firstElementChild; // the RuStore app stays first
-        const items = repos.map((repo) => {
-            const li = document.createElement("li");
-            const a = document.createElement("a");
-            a.href = repo.html_url;
-            if (repo.description) a.title = repo.description;
-            for (const text of [repo.name, repo.language || "Misc", repo.pushed_at.slice(0, 4)]) {
-                const span = document.createElement("span");
-                span.textContent = text;
-                a.append(span);
-            }
-            li.append(a);
-            return li;
-        });
-        list.replaceChildren(app, ...items);
-        kick();
-    } catch {
-        // offline or rate-limited: the static list is already there
-    }
-}
-
 setupQuiz();
 setupHex();
 setupClock();
-setupRepos();
 startPanel();

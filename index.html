@@ -3,12 +3,13 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Denis · 0xd3d4</title>
-        <meta name="description" content="Denis (0xd3d4), software engineer in Nizhny Novgorod: Go, Python, Kubernetes, ClickHouse. Author of the Android app «Радиолюбительский экзамен»." />
+        <title>Denis · 0xD3D4</title>
+        <meta name="description" content="Denis (0xD3D4), software engineer in Nizhny Novgorod: storage, networking, telecom and security software. Author of HamTutor, an Android app for the amateur radio exam." />
         <meta name="theme-color" content="#c4c4c0" />
         <link rel="icon" href="favicon.svg" type="image/svg+xml" />
         <link rel="preload" href="assets/fonts/unbounded-latin.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="preload" href="assets/fonts/handjet-latin.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="assets/avatar.webp" as="image" />
         <link rel="stylesheet" href="styles.css" />
         <script>document.documentElement.classList.add("js");</script>
 
@@ -39,8 +40,7 @@
             <a class="status__name" href="#top">d3d4.ru</a>
             <nav class="status__nav" aria-label="Sections">
                 <a href="#about">About</a>
-                <a href="#app">Radio exam</a>
-                <a href="#code">Code</a>
+                <a href="#projects">Projects</a>
                 <a href="#contact">73</a>
             </nav>
             <span class="status__clock" aria-label="Local time in Nizhny Novgorod">
@@ -51,22 +51,23 @@
 
         <main id="top">
             <!-- Intro: one panel held on screen while the ink flows from word to word -->
-            <section class="intro" data-intro style="--n: 5">
+            <section class="intro" data-intro style="--n: 6">
                 <div class="intro__screen">
-                    <h1 class="intro__title">Denis, 0xd3d4. Software engineer in Nizhny Novgorod.</h1>
+                    <h1 class="intro__title">Denis, <span class="keep-case">0xD3D4</span>. Software engineer in Nizhny Novgorod.</h1>
                     <div class="intro__display" data-display aria-hidden="true">
-                        <span class="intro__fallback">0xd3d4</span>
+                        <span class="intro__fallback">0xD3D4</span>
                     </div>
                     <ol class="intro__phrases" data-phrases>
-                        <li data-lines="0XD3D4">d3d4.ru, a personal page</li>
-                        <li data-lines="DENIS">Software engineer</li>
-                        <li data-lines="GO|PYTHON">Backend services, tools and scripts</li>
+                        <li data-lines="DENIS|0xD3D4" data-picture="assets/avatar.webp" data-vapour>Software engineer</li>
+                        <li data-lines="STORAGE">File systems for SSDs, object and block storage, storage arrays</li>
+                        <li data-lines="NETWORK">Packet processing at line rate</li>
+                        <li data-lines="TELECOM">VoIP call routing over SIP and H.323, decoding calls and LTE traffic</li>
+                        <li data-lines="SECURITY">Malware scanning and sandboxes</li>
                         <li data-lines="NIZHNY|NOVGOROD">Where the Oka meets the Volga</li>
-                        <li data-lines="RADIO|EXAM">An Android app for radio amateurs</li>
                     </ol>
                     <p class="intro__foot">
-                        <span data-caption>d3d4.ru, a personal page</span>
-                        <span class="intro__count"><span data-count>1</span>/5 <span class="intro__hint">scroll</span></span>
+                        <span data-caption>Software engineer</span>
+                        <span class="intro__count"><span data-count>1</span>/6 <span class="intro__hint">scroll</span></span>
                     </p>
                 </div>
             </section>
@@ -85,22 +86,23 @@
                         <div><dt>QTH</dt><dd>Nizhny Novgorod</dd></div>
                         <div><dt>Works at</dt><dd>YADRO</dd></div>
                         <div><dt>On GitHub</dt><dd>since 2011</dd></div>
-                        <div><dt>Handle</dt><dd><button class="hex" type="button" data-hex>0xd3d4</button></dd></div>
+                        <div><dt>Handle</dt><dd><button class="hex" type="button" data-hex>0xD3D4</button></dd></div>
                         <div><dt>Languages</dt><dd>Go, Python, Shell</dd></div>
                         <div><dt>Runs on</dt><dd>Kubernetes, ClickHouse, Linux, S3</dd></div>
                     </dl>
                 </div>
             </section>
 
-            <!-- The app -->
-            <section class="block" id="app" data-shadow aria-labelledby="app-title">
-                <h2 class="ink-title" id="app-title" data-ink>Radio exam</h2>
+            <!-- Projects -->
+            <section class="block" id="projects" data-shadow aria-labelledby="projects-title">
+                <h2 class="ink-title" id="projects-title" data-ink>Projects</h2>
                 <div class="app">
                     <div class="app__about">
+                        <h3 class="app__name">HamTutor</h3>
                         <p class="app__text">
-                            <span lang="ru">«Радиолюбительский экзамен»</span> is an Android app for the
-                            Russian amateur radio operator exam, from category 4 up to category 1. Tests
-                            follow the real exam: the same number of questions, the same pass mark.
+                            An Android app for the Russian amateur radio operator exam, from category 4
+                            up to category 1. Tests follow the real exam: the same number of questions,
+                            the same pass mark.
                         </p>
                         <dl class="spec spec--leaders">
                             <div><dt>Categories</dt><dd>4</dd></div>
@@ -127,30 +129,6 @@
                 </div>
             </section>
 
-            <!-- Code -->
-            <section class="block" id="code" data-shadow aria-labelledby="code-title">
-                <h2 class="ink-title" id="code-title" data-ink>Code</h2>
-                <p class="code__note">Read live from <a href="https://github.com/ehles">github.com/ehles</a>, newest first.</p>
-                <ul class="repos" data-repos>
-                    <li><a href="https://www.rustore.ru/catalog/app/ru.d3d4.ham"><span>Radio exam app</span><span>Android</span><span>2026</span></a></li>
-                    <li><a href="https://github.com/ehles/tg2json"><span>tg2json</span><span>Python</span><span>2025</span></a></li>
-                    <li><a href="https://github.com/ehles/ehles.github.io"><span>ehles.github.io</span><span>HTML</span><span>2025</span></a></li>
-                    <li><a href="https://github.com/ehles/microservice_sample"><span>microservice_sample</span><span>Python</span><span>2025</span></a></li>
-                    <li><a href="https://github.com/ehles/monty_hall_demo"><span>monty_hall_demo</span><span>Python</span><span>2024</span></a></li>
-                    <li><a href="https://github.com/ehles/ehles.pyAvg"><span>ehles.pyAvg</span><span>Python</span><span>2024</span></a></li>
-                    <li><a href="https://github.com/ehles/awesome"><span>awesome</span><span>List</span><span>2024</span></a></li>
-                    <li><a href="https://github.com/ehles/viber_secret_chat_pin"><span>viber_secret_chat_pin</span><span>Python</span><span>2023</span></a></li>
-                    <li><a href="https://github.com/ehles/fpv"><span>fpv</span><span>Notes</span><span>2020</span></a></li>
-                    <li><a href="https://github.com/ehles/aux_scripts"><span>aux_scripts</span><span>Shell</span><span>2017</span></a></li>
-                    <li><a href="https://github.com/ehles/trep"><span>trep</span><span>Python</span><span>2016</span></a></li>
-                    <li><a href="https://github.com/ehles/rst2tr"><span>rst2tr</span><span>Python</span><span>2016</span></a></li>
-                    <li><a href="https://github.com/ehles/dotfiles"><span>dotfiles</span><span>Shell</span><span>2016</span></a></li>
-                    <li><a href="https://github.com/ehles/trusty"><span>trusty</span><span>Python</span><span>2016</span></a></li>
-                    <li><a href="https://github.com/ehles/testerstools-radius-server"><span>testerstools-radius-server</span><span>Python</span><span>2015</span></a></li>
-                    <li><a href="https://github.com/ehles/slowpoke_proxy"><span>slowpoke_proxy</span><span>Python</span><span>2014</span></a></li>
-                </ul>
-            </section>
-
             <!-- Contact -->
             <section class="block" id="contact" data-shadow aria-labelledby="contact-title">
                 <h2 class="ink-title" id="contact-title" data-ink>73</h2>
@@ -165,8 +143,8 @@
         </main>
 
         <footer class="foot" data-shadow>
-            <span>© Denis, 0xd3d4</span>
-            <a href="https://github.com/ehles/ehles.github.io">Source on GitHub</a>
+            <span>© Denis, <span class="keep-case">0xD3D4</span></span>
+            <span>Nizhny Novgorod</span>
         </footer>
 
         <div class="grid" aria-hidden="true"></div>
