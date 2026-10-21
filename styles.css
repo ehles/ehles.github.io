@@ -239,6 +239,36 @@ a:focus-visible {
     gap: 20px;
 }
 
+.status__lang {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+}
+
+.status__lang button {
+    font: inherit;
+    color: inherit;
+    text-shadow: inherit;
+    letter-spacing: inherit;
+    background: none;
+    border: 0;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+/* the chosen language in inverse video */
+.status__lang [aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--glass);
+    text-shadow: none;
+}
+
+.status__lang button:hover:not([aria-pressed="true"]),
+.status__lang button:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: -3px;
+}
+
 .status__clock {
     display: flex;
     align-items: center;
@@ -380,11 +410,30 @@ a:focus-visible {
     align-items: start;
 }
 
-.about__text,
 .app__text {
     font-size: var(--lead);
     line-height: 1.2;
     max-width: 30ch;
+}
+
+.about__story {
+    display: grid;
+    gap: 24px;
+}
+
+.about__lead {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 1rem + 2.2vw, 3rem);
+    line-height: 1.05;
+    max-width: 16ch;
+    margin-bottom: 8px;
+}
+
+.about__text {
+    font-size: var(--lead);
+    line-height: 1.2;
+    max-width: 38ch;
 }
 
 .spec div {

@@ -238,7 +238,7 @@ function build() {
     const w = Math.floor(box.width / CELL);
     const h = Math.floor(box.height / CELL);
     const sets = phraseItems.map((li) => {
-        const lines = li.dataset.lines.split("|");
+        const lines = ((lang === "ru" && li.dataset.linesRu) || li.dataset.lines).split("|");
         const picture = pictures.get(li);
         return picture
             ? rasterizeWithPicture(lines, picture, w, h, "invert" in li.dataset)
@@ -305,7 +305,45 @@ function stampTitles() {
     }
 }
 
-/* ---------- Vapour: the figure itself dissolves into flying pixels ---------- */
+/* ---------- Vapour: the figure dissolves into pixels, and the pixels turn into code ---------- */
+
+// A 3×5 dot-matrix font, rows top to bottom, just the characters the code fragments need
+const GLYPHS = {
+    0: "###,#.#,#.#,#.#,###", 1: ".#.,##.,.#.,.#.,###", 2: "###,..#,###,#..,###", 3: "###,..#,.##,..#,###",
+    4: "#.#,#.#,###,..#,..#", 5: "###,#..,###,..#,###", 6: "###,#..,###,#.#,###", 7: "###,..#,.#.,.#.,.#.",
+    8: "###,#.#,###,#.#,###", 9: "###,#.#,###,..#,###", A: ".#.,#.#,###,#.#,#.#", B: "##.,#.#,##.,#.#,##.",
+    C: "###,#..,#..,#..,###", D: "##.,#.#,#.#,#.#,##.", E: "###,#..,##.,#..,###", F: "###,#..,##.,#..,#..",
+    G: "###,#..,#.#,#.#,###", H: "#.#,#.#,###,#.#,#.#", I: "###,.#.,.#.,.#.,###", K: "#.#,##.,#..,##.,#.#",
+    L: "#..,#..,#..,#..,###", N: "##.,#.#,#.#,#.#,#.#", O: "###,#.#,#.#,#.#,###", P: "###,#.#,###,#..,#..",
+    R: "##.,#.#,##.,#.#,#.#", S: "###,#..,###,..#,###", T: "###,.#.,.#.,.#.,.#.", X: "#.#,#.#,.#.,#.#,#.#",
+    Y: "#.#,#.#,.#.,.#.,.#.", "{": ".##,.#.,##.,.#.,.##", "}": "##.,.#.,.##,.#.,##.", "(": ".#.,#..,#..,#..,.#.",
+    ")": ".#.,..#,..#,..#,.#.", "[": "##.,#..,#..,#..,##.", "]": ".##,..#,..#,..#,.##", ";": "...,.#.,...,.#.,#..",
+    "=": "...,###,...,###,...", ">": "#..,.#.,..#,.#.,#..", "<": "..#,.#.,#..,.#.,..#", "/": "..#,..#,.#.,#..,#..",
+    "&": ".#.,#.#,.#.,#.#,.##", "*": "...,#.#,.#.,#.#,...", "+": "...,.#.,###,.#.,...", "!": ".#.,.#.,.#.,...,.#.",
+};
+
+// What a person turns into, if he writes code: bits, hex, and the words of his trade
+const TOKENS = [
+    "0", "1", "0", "1", "1", "0", "0X", "D3", "D4", "FF", "{}", "()", "[]", ";", "=>", "&&", "!=", "//",
+    "GO", "PY", "IF", "FN", "NIL", "SIP", "RTP", "TCP", "S3", "OK", "0X1F", "<>",
+].map((token) => {
+    const cells = [];
+    [...token].forEach((ch, k) => {
+        GLYPHS[ch].split(",").forEach((row, y) => {
+            [...row].forEach((c, x) => {
+                if (c === "#") cells.push(k * 4 + x, y);
+            });
+        });
+    });
+    return Int8Array.from(cells);
+});
+
+// A fixed pseudo-random number per particle and cell, so a glyph builds and breaks up
+// in a steady order instead of flickering
+const hash = (a, b) => {
+    const h = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453;
+    return h - Math.floor(h);
+};
 
 const VAPOUR_MAX = 6000;
 const vapour = {
@@ -316,7 +354,10 @@ const vapour = {
     vy: new Float32Array(VAPOUR_MAX),
     age: new Float32Array(VAPOUR_MAX),
     life: new Float32Array(VAPOUR_MAX),
+    token: new Int16Array(VAPOUR_MAX), // -1: stays a plain pixel
+    seed: new Float32Array(VAPOUR_MAX),
 };
+const VAPOUR_KEYS = Object.keys(vapour).filter((key) => key !== "n");
 let vapourPhrase = -1;
 let source = null; // the portrait's cells, how eager each is to leave, and until when it is gone
 let tick = 0;
@@ -324,10 +365,14 @@ let tick = 0;
 function setVapourSource(picture) {
     let minX = Infinity;
     let maxX = -Infinity;
-    for (const x of picture.xs) {
+    let minY = Infinity;
+    let maxY = -Infinity;
+    picture.xs.forEach((x, i) => {
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
-    }
+        minY = Math.min(minY, picture.ys[i]);
+        maxY = Math.max(maxY, picture.ys[i]);
+    });
     // the left half holds; the right half gives itself up, more and more towards the edge
     const mid = (minX + maxX) / 2;
     const eager = picture.xs.map((x) => (x > mid ? ((x - mid) / (maxX - mid)) ** 1.6 : 0));
@@ -336,6 +381,8 @@ function setVapourSource(picture) {
         ys: picture.ys,
         eager,
         goneUntil: new Float32Array(picture.xs.length),
+        // code is born from the head and shoulders, so it has clear glass to rise into
+        codeBelow: minY + (maxY - minY) * 0.55,
     };
     vapour.n = 0;
 }
@@ -344,6 +391,10 @@ function resetVapour() {
     if (source) source.goneUntil.fill(0);
     vapour.n = 0;
 }
+
+const plot = (x, y) => {
+    if (x >= 0 && y >= 0 && x < cols && y < rows) acc[y * cols + x] = 1;
+};
 
 function stepVapour(ox, oy, strength) {
     const v = vapour;
@@ -359,12 +410,18 @@ function stepVapour(ox, oy, strength) {
         source.goneUntil[pick] = tick + 90 + Math.random() * 240;
         if (v.n >= VAPOUR_MAX) continue;
         const i = v.n++;
+        // some pixels grow into a piece of code on their way out. Code drifts slowly, a cell
+        // every seven frames or so, so the panel's afterglow does not smear the glyph
+        const isCode = source.ys[pick] < source.codeBelow && Math.random() < 0.05;
         v.x[i] = source.xs[pick];
         v.y[i] = source.ys[pick];
-        v.vx[i] = 0.08 + Math.random() * 0.27;
-        v.vy[i] = -(0.04 + Math.random() * 0.2);
+        // code rises almost straight up, into the clear glass above the figure
+        v.vx[i] = isCode ? -0.07 + Math.random() * 0.16 : 0.08 + Math.random() * 0.27;
+        v.vy[i] = isCode ? -(0.11 + Math.random() * 0.06) : -(0.04 + Math.random() * 0.2);
         v.age[i] = 0;
-        v.life[i] = 80 + Math.random() * 140;
+        v.life[i] = isCode ? 420 + Math.random() * 240 : 80 + Math.random() * 140;
+        v.token[i] = isCode ? Math.floor(Math.random() * TOKENS.length) : -1;
+        v.seed[i] = Math.random() * 1000;
     }
 
     // the holes the figure has lost
@@ -375,24 +432,42 @@ function stepVapour(ox, oy, strength) {
         if (hx >= 0 && hy >= 0 && hx < cols && hy < rows) acc[hy * cols + hx] = 0;
     }
 
-    // the pixels in flight, thinning out as they rise
+    // the pixels in flight: plain ones thin out as they rise, the others become code
     for (let i = 0; i < v.n; i++) {
         v.age[i] += 1;
         if (v.age[i] >= v.life[i]) {
             // retire: the last particle takes this slot
             const last = --v.n;
-            for (const key of ["x", "y", "vx", "vy", "age", "life"]) v[key][i] = v[key][last];
+            for (const key of VAPOUR_KEYS) v[key][i] = v[key][last];
             i--;
             continue;
         }
-        v.x[i] += v.vx[i] + Math.sin((v.age[i] + i) * 0.2) * 0.1;
+        if (v.token[i] < 0) {
+            v.x[i] += v.vx[i] + Math.sin((v.age[i] + i) * 0.2) * 0.1;
+            v.vy[i] -= 0.0025;
+        } else {
+            v.x[i] += v.vx[i];
+        }
         v.y[i] += v.vy[i];
-        v.vy[i] -= 0.0025;
 
-        const fade = (1 - v.age[i] / v.life[i]) * strength;
+        const u = v.age[i] / v.life[i];
         const cx = Math.round(ox + v.x[i]);
         const cy = Math.round(oy + v.y[i]);
-        if (Math.random() < fade && cx >= 0 && cy >= 0 && cx < cols && cy < rows) acc[cy * cols + cx] = 1;
+        if (v.token[i] < 0) {
+            if (Math.random() < (1 - u) * strength) plot(cx, cy);
+            continue;
+        }
+        // a pixel first, then the glyph assembles dot by dot, holds, and breaks up again
+        if (u < 0.05) {
+            plot(cx, cy);
+            continue;
+        }
+        const built = clamp((u - 0.05) / 0.12, 0, 1);
+        const kept = clamp((1 - u) / 0.3, 0, 1) * strength;
+        const cells = TOKENS[v.token[i]];
+        for (let c = 0; c < cells.length; c += 2) {
+            if (hash(v.seed[i], c) < built && hash(c, v.seed[i]) < kept) plot(cx + cells[c], cy + cells[c + 1]);
+        }
     }
 }
 
@@ -457,7 +532,7 @@ function kick() {
 async function startPanel() {
     makeGrain();
     try {
-        await document.fonts.load("700 100px Unbounded");
+        await document.fonts.load("700 100px Unbounded", lang === "ru" ? "ДЕНИС 0xD3D4" : "DENIS 0xD3D4");
     } catch {
         // draw with the fallback face
     }
@@ -492,6 +567,61 @@ async function startPanel() {
         }, 150);
     });
 }
+
+/* ---------- Language: English or Russian, remembered per visitor ---------- */
+
+const META = {
+    en: { title: document.title, description: document.querySelector('meta[name="description"]').content },
+    ru: {
+        title: "Денис · 0xD3D4",
+        description:
+            "Денис (0xD3D4), разработчик ПО из Нижнего Новгорода: системы хранения, сети, телеком и безопасность. Автор HamTutor, приложения для подготовки к экзамену на радиолюбительскую категорию.",
+    },
+};
+const translated = [...document.querySelectorAll("[data-ru]")];
+const labelled = [...document.querySelectorAll("[data-ru-label]")];
+const langButtons = [...document.querySelectorAll("[data-lang]")];
+translated.forEach((el) => (el.dataset.en = el.textContent.trim()));
+labelled.forEach((el) => (el.dataset.enLabel = el.getAttribute("aria-label")));
+let lang = "en";
+
+function pickLanguage() {
+    try {
+        const saved = localStorage.getItem("lang");
+        if (saved === "en" || saved === "ru") return saved;
+    } catch {
+        // storage blocked: fall back to the browser's languages
+    }
+    return (navigator.languages || [navigator.language]).some((l) => /^ru\b/i.test(l)) ? "ru" : "en";
+}
+
+async function setLanguage(next) {
+    lang = next;
+    for (const el of translated) el.textContent = lang === "ru" ? el.dataset.ru : el.dataset.en;
+    for (const el of labelled) el.setAttribute("aria-label", lang === "ru" ? el.dataset.ruLabel : el.dataset.enLabel);
+    root.lang = lang;
+    document.title = META[lang].title;
+    document.querySelector('meta[name="description"]').content = META[lang].description;
+    langButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    try {
+        localStorage.setItem("lang", lang);
+    } catch {
+        // the choice just will not be remembered
+    }
+    // the ink is drawn from the words, so redraw it in the new language
+    if (image) {
+        try {
+            await document.fonts.load("700 100px Unbounded", "ДЕНИС");
+        } catch {
+            // draw with what has loaded
+        }
+        build();
+        lastPhrase = -1;
+        kick();
+    }
+}
+
+langButtons.forEach((b) => b.addEventListener("click", () => setLanguage(b.dataset.lang)));
 
 /* ---------- Page machinery ---------- */
 
@@ -599,6 +729,7 @@ function setupClock() {
     setInterval(tick, 1000);
 }
 
+setLanguage(pickLanguage());
 setupQuiz();
 setupHex();
 setupClock();
