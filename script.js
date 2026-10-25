@@ -605,35 +605,62 @@ function introPosition() {
     return { p: -r.top / step, steps, step, top: window.scrollY + r.top };
 }
 
-// When the scroll comes to rest halfway through a flow, finish it in the direction it went
+// The flow between two phrases plays from 0.3 to 0.75 of a step; past its middle,
+// the next phrase is the nearer one
+const FLOW_MIDDLE = 0.525;
+const easeOut = (u) => 1 - (1 - u) ** 4;
+
+// When the scroll comes to rest halfway through a flow, the nearer phrase pulls it in:
+// quick at first, slowing as it lands
 function setupSnap() {
     let touching = false;
     let settleTimer = 0;
-    let restY = window.scrollY; // where the scroll last came to rest
+    let glide = 0; // the frame of the pull in progress
+
+    function stop() {
+        cancelAnimationFrame(glide);
+        glide = 0;
+    }
+
+    function pull(to) {
+        const from = window.scrollY;
+        const distance = to - from;
+        // a longer way takes a little longer, never so long it feels sluggish
+        const duration = clamp(650 + Math.abs(distance) * 1.4, 750, 1300);
+        const start = performance.now();
+        const step = (now) => {
+            const u = clamp((now - start) / duration, 0, 1);
+            window.scrollTo({ top: from + distance * easeOut(u), behavior: "instant" });
+            glide = u < 1 ? requestAnimationFrame(step) : 0;
+        };
+        glide = requestAnimationFrame(step);
+    }
 
     function settle() {
-        if (touching) return;
+        if (touching || glide) return;
         const { p, steps, step, top } = introPosition();
-        const y = window.scrollY;
+        const k = Math.floor(p);
         // a phrase stands whole for a little while either side of its spot
-        const near = Math.round(p);
-        if (p <= 0 || p >= steps || Math.abs(p - near) < 0.04) {
-            restY = y;
-            return;
-        }
-        const target = y > restY ? Math.ceil(p) : Math.floor(p);
-        restY = top + target * step;
-        window.scrollTo({ top: restY, behavior: reduceMotion ? "auto" : "smooth" });
+        if (p <= 0 || p >= steps || Math.abs(p - Math.round(p)) < 0.04) return;
+        const target = top + (p - k > FLOW_MIDDLE ? k + 1 : k) * step;
+        if (reduceMotion) window.scrollTo({ top: target, behavior: "instant" });
+        else pull(target);
     }
 
     const schedule = () => {
         clearTimeout(settleTimer);
         settleTimer = setTimeout(settle, 260);
     };
+    // a hand on the page takes over from the pull
+    const grab = () => {
+        stop();
+        clearTimeout(settleTimer);
+    };
     window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("wheel", grab, { passive: true });
     window.addEventListener("touchstart", () => {
         touching = true;
-        clearTimeout(settleTimer);
+        grab();
     }, { passive: true });
     window.addEventListener("touchend", () => {
         touching = false;
