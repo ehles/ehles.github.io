@@ -297,7 +297,16 @@ a:focus-visible {
 /* ---------- Intro ---------- */
 
 .intro {
-    height: calc(var(--n) * 100svh);
+    /* scroll it takes to flow from one phrase to the next */
+    --step: 100svh;
+    height: calc(100svh + (var(--n) - 1) * var(--step));
+}
+
+/* a thumb travels less than a wheel: one swipe, one phrase */
+@media (pointer: coarse) {
+    .intro {
+        --step: 60svh;
+    }
 }
 
 .intro__screen {
@@ -400,6 +409,31 @@ a:focus-visible {
 .lcd-ready .ink-title {
     color: transparent;
     text-shadow: none;
+}
+
+/* switching language, the panel redraws its text in a stepped sweep: the old words
+   are wiped off left to right, the new ones written in after them */
+.lang-out :is([data-ru], [data-caption]) {
+    animation: lcd-wipe-off 180ms steps(5) forwards;
+}
+
+.lang-in :is([data-ru], [data-caption]) {
+    animation: lcd-wipe-on 360ms steps(9) both;
+}
+
+@keyframes lcd-wipe-off {
+    to {
+        clip-path: inset(-0.2em -0.2em -0.2em 100%);
+    }
+}
+
+@keyframes lcd-wipe-on {
+    from {
+        clip-path: inset(-0.2em 100% -0.2em -0.2em);
+    }
+    to {
+        clip-path: inset(-0.2em -0.2em -0.2em -0.2em);
+    }
 }
 
 /* About */

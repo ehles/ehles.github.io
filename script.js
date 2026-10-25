@@ -122,7 +122,7 @@ function rasterizeWithPicture(lines, img, w, h, invert) {
         picture = shifted(rasterizePicture(img, pw, ph, invert), Math.round((w - pw) / 2), 0);
         words = shifted(rasterize(lines, w, h - ph - gap, "center"), 0, ph + gap);
     }
-    return { xs: picture.xs.concat(words.xs), ys: picture.ys.concat(words.ys), picture };
+    return { xs: picture.xs.concat(words.xs), ys: picture.ys.concat(words.ys), picture, words };
 }
 
 // Pair every drop of ink in A with a place in B. Column order keeps left letters flowing
@@ -154,6 +154,11 @@ function makeFlow(A, B, w) {
         flow.sag[i] = Math.random() ** 2 * 22;
     }
     return flow;
+}
+
+// Put a still shape on the panel
+function stampSet(set, ox, oy) {
+    for (let i = 0; i < set.xs.length; i++) plot(ox + set.xs[i], oy + set.ys[i]);
 }
 
 const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
@@ -220,8 +225,10 @@ const caption = document.querySelector("[data-caption]");
 const count = document.querySelector("[data-count]");
 const titles = [...document.querySelectorAll("[data-ink]")].map((el) => ({ el, flow: null }));
 const pictures = new Map(); // phrase → loaded portrait
+let introSets = [];
 let introFlows = [];
 let lastPhrase = -1;
+let morph = null; // the ink flowing from one language's words into the other's
 
 function build() {
     cols = Math.ceil(window.innerWidth / CELL);
@@ -237,22 +244,23 @@ function build() {
     const box = display.getBoundingClientRect();
     const w = Math.floor(box.width / CELL);
     const h = Math.floor(box.height / CELL);
-    const sets = phraseItems.map((li) => {
+    introSets = phraseItems.map((li) => {
         const lines = ((lang === "ru" && li.dataset.linesRu) || li.dataset.lines).split("|");
         const picture = pictures.get(li);
         return picture
             ? rasterizeWithPicture(lines, picture, w, h, "invert" in li.dataset)
             : rasterize(lines, w, h, "center");
     });
-    introFlows = sets.slice(1).map((set, i) => makeFlow(sets[i], set, w));
-    vapourPhrase = phraseItems.findIndex((li, i) => "vapour" in li.dataset && sets[i].picture);
-    if (vapourPhrase >= 0) setVapourSource(sets[vapourPhrase].picture);
+    introFlows = introSets.slice(1).map((set, i) => makeFlow(introSets[i], set, w));
+    vapourPhrase = phraseItems.findIndex((li, i) => "vapour" in li.dataset && introSets[i].picture);
+    if (vapourPhrase >= 0) setVapourSource(introSets[vapourPhrase].picture);
 
     for (const title of titles) {
         const r = title.el.getBoundingClientRect();
         const tw = Math.floor(r.width / CELL);
         const th = Math.floor(r.height / CELL);
         const shape = rasterize([title.el.textContent.trim().toUpperCase()], tw, th, "left");
+        title.shape = shape;
         // the ink waits in a pool below the start of the heading and rises into the letters
         const pool = {
             xs: shape.xs.map((x) => Math.round(x * 0.12)),
@@ -273,7 +281,15 @@ function stampIntro() {
     const d = display.getBoundingClientRect();
     const ox = Math.round(d.left / CELL);
     const oy = Math.round(d.top / CELL);
-    stamp(introFlows[k], t, ox, oy);
+    const resting = t === 0 || t === 1;
+    const current = k + (t >= 0.5 ? 1 : 0);
+    if (morph && resting && current === morph.phrase) {
+        // the picture stays put while the words around it change language
+        if (morph.picture) stampSet(morph.picture, ox, oy);
+        stamp(morph.intro, morph.t, ox, oy);
+    } else {
+        stamp(introFlows[k], t, ox, oy);
+    }
 
     // the portrait evaporates only while it stands whole on the panel
     let strength = 0;
@@ -286,7 +302,6 @@ function stampIntro() {
         resetVapour();
     }
 
-    const current = k + (t >= 0.5 ? 1 : 0);
     if (current !== lastPhrase) {
         lastPhrase = current;
         caption.textContent = phraseItems[current].textContent;
@@ -300,8 +315,12 @@ function stampTitles() {
         const r = title.el.getBoundingClientRect();
         if (r.bottom < -40 || r.top > vh + 40) continue;
         const t = reduceMotion ? 1 : clamp((vh * 0.98 - r.top) / (vh * 0.45), 0, 1);
+        const ox = Math.round(r.left / CELL);
+        const oy = Math.round(r.top / CELL);
+        const switching = morph && morph.titles.get(title);
+        if (switching && t === 1) stamp(switching, morph.t, ox, oy);
         // the pool stays dry until the heading starts to fill
-        if (t > 0) stamp(title.flow, t, Math.round(r.left / CELL), Math.round(r.top / CELL));
+        else if (t > 0) stamp(title.flow, t, ox, oy);
     }
 }
 
@@ -512,9 +531,16 @@ function parallax() {
 let running = false;
 let ambient = false; // something on the panel moves by itself this frame
 
-function frame() {
+const MORPH_MS = 1300;
+
+function frame(now) {
     acc.fill(0);
     ambient = false;
+    if (morph) {
+        morph.t = clamp((now - morph.start) / MORPH_MS, 0, 1);
+        if (morph.t >= 1) morph = null;
+        else ambient = true;
+    }
     stampIntro();
     stampTitles();
     const settling = paint();
@@ -554,6 +580,7 @@ async function startPanel() {
     root.classList.add("lcd-ready");
     kick();
     window.addEventListener("scroll", kick, { passive: true });
+    setupSnap();
     let resizeTimer = 0;
     let lastWidth = window.innerWidth;
     window.addEventListener("resize", () => {
@@ -566,6 +593,56 @@ async function startPanel() {
             kick();
         }, 150);
     });
+}
+
+/* ---------- Snap: the intro never rests between two phrases ---------- */
+
+// Where the intro is, in phrases: 2 means the third phrase stands whole, 2.4 is mid-flow
+function introPosition() {
+    const r = intro.getBoundingClientRect();
+    const steps = phraseItems.length - 1;
+    const step = (r.height - window.innerHeight) / steps;
+    return { p: -r.top / step, steps, step, top: window.scrollY + r.top };
+}
+
+// When the scroll comes to rest halfway through a flow, finish it in the direction it went
+function setupSnap() {
+    let touching = false;
+    let settleTimer = 0;
+    let restY = window.scrollY; // where the scroll last came to rest
+
+    function settle() {
+        if (touching) return;
+        const { p, steps, step, top } = introPosition();
+        const y = window.scrollY;
+        // a phrase stands whole for a little while either side of its spot
+        const near = Math.round(p);
+        if (p <= 0 || p >= steps || Math.abs(p - near) < 0.04) {
+            restY = y;
+            return;
+        }
+        const target = y > restY ? Math.ceil(p) : Math.floor(p);
+        restY = top + target * step;
+        window.scrollTo({ top: restY, behavior: reduceMotion ? "auto" : "smooth" });
+    }
+
+    const schedule = () => {
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(settle, 260);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("touchstart", () => {
+        touching = true;
+        clearTimeout(settleTimer);
+    }, { passive: true });
+    window.addEventListener("touchend", () => {
+        touching = false;
+        schedule();
+    }, { passive: true });
+    window.addEventListener("touchcancel", () => {
+        touching = false;
+        schedule();
+    }, { passive: true });
 }
 
 /* ---------- Language: English or Russian, remembered per visitor ---------- */
@@ -595,7 +672,16 @@ function pickLanguage() {
     return (navigator.languages || [navigator.language]).some((l) => /^ru\b/i.test(l)) ? "ru" : "en";
 }
 
+const wait = (ms) => new Promise((done) => setTimeout(done, ms));
+let switching = Promise.resolve();
+
 async function setLanguage(next) {
+    const animate = Boolean(image) && !reduceMotion && next !== lang;
+    if (animate) {
+        root.classList.remove("lang-in");
+        root.classList.add("lang-out");
+        await wait(180);
+    }
     lang = next;
     for (const el of translated) el.textContent = lang === "ru" ? el.dataset.ru : el.dataset.en;
     for (const el of labelled) el.setAttribute("aria-label", lang === "ru" ? el.dataset.ruLabel : el.dataset.enLabel);
@@ -615,13 +701,45 @@ async function setLanguage(next) {
         } catch {
             // draw with what has loaded
         }
+        const before = { phrase: lastPhrase, sets: introSets, titles: titles.map((t) => t.shape) };
         build();
         lastPhrase = -1;
+        if (animate) startMorph(before);
         kick();
+    }
+    if (animate) {
+        root.classList.replace("lang-out", "lang-in");
+        await wait(360);
+        root.classList.remove("lang-in");
     }
 }
 
-langButtons.forEach((b) => b.addEventListener("click", () => setLanguage(b.dataset.lang)));
+// The ink of the words on screen flows into the same words in the other language
+function startMorph(before) {
+    const w = Math.floor(display.getBoundingClientRect().width / CELL);
+    const from = before.sets[before.phrase];
+    const to = introSets[before.phrase];
+    morph = { start: performance.now(), t: 0, phrase: before.phrase, picture: null, intro: null, titles: new Map() };
+    if (from && to) {
+        morph.picture = to.picture || null;
+        morph.intro = makeFlow(from.words || from, to.words || to, w);
+    } else {
+        morph.phrase = -1;
+    }
+    titles.forEach((title, i) => {
+        const old = before.titles[i];
+        if (old && old.xs.length && title.shape.xs.length) {
+            morph.titles.set(title, makeFlow(old, title.shape, Math.floor(title.el.getBoundingClientRect().width / CELL)));
+        }
+    });
+}
+
+// one switch at a time, so a double tap does not tangle two sweeps
+langButtons.forEach((b) =>
+    b.addEventListener("click", () => {
+        switching = switching.then(() => setLanguage(b.dataset.lang));
+    }),
+);
 
 /* ---------- Page machinery ---------- */
 
